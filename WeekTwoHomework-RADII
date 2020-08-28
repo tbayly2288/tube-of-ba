@@ -1,0 +1,43 @@
+public with sharing class WeekTwoHomework {
+    //Method for getting contacts
+    public static void getContacts(){
+        //Pulling contact details into a list and limiting it to 5 records
+        List <Contact> industryContacts = [SELECT Id, Name, Account.Name, Account.Industry 
+                                   FROM Contact LIMIT 5];
+            //Looping through the contact list to see each contact and their account name
+            for(Contact uniqueContact : industryContacts) {
+            System.debug('Contact Name: ' + uniqueContact.Name + ' Account Name: ' + uniqueContact.Account.Name);
+}
+    }
+    //Method returning no values
+    public  static void getAccounts(){
+        //Pulling a list of account with their closed won opps
+        List <Account> acctsWithOpps = [SELECT Id, Name,
+                                            (SELECT Id, Name 
+                                            FROM Opportunities 
+                                            WHERE StageName = 'Closed Won') 
+                                            FROM Account];
+            //Looping through each account
+            for(Account uniqueAccount: acctsWithOpps){
+            System.debug('Account Name is:  ' + uniqueAccount.Name);
+            //Looping through each opportunity on each account
+                for(Opportunity acctOpp: uniqueAccount.Opportunities){
+                System.debug('Account Name - ' + uniqueAccount.Name + ' Opportunity Name - ' + acctOpp.Name);
+                }
+      }  
+    }  
+    //Created a method that returns a map
+    public static Map<id,Opportunity> returnThatMap(){
+        //Declared a map and the query of the map
+        Map<id,Opportunity> getThatMap = new Map<id,Opportunity> ([SELECT ID, Name, StageName, Amount FROM Opportunity]);
+        System.debug('# of Maps: ' + getThatMap.size());
+        //returned the map's key/value pairs
+        return getThatMap;
+    }
+    //Created a method that returns no values
+    public static void countThoseOpps(){
+        //Declare a variable and set it to equal the count of open opportunities
+        Integer numberOfOpenOpps = [SELECT COUNT() FROM Opportunity WHERE StageName= 'Open'];
+        System.debug('Number of Open Opps = ' + numberOfOpenOpps);
+    }
+}
