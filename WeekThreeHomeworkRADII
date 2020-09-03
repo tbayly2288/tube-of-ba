@@ -1,0 +1,46 @@
+public with sharing class LeadTriggerHandler {
+    /*Based on a Lead’s Product Interest, create a task to 
+* follow up with the lead.
+* However, If the trigger is firing on after update, 
+* we only want to create a task if the product interest has changed.  
+* Otherwise we’ll get a new task every time the lead is edited 
+* in any way!
+* Hint: Comparing values from the old version of lead 
+* and the new version of lead
+*/
+    public static void afterInsert(List<Lead> newLeadsList){
+        //Creating a list of tasks to eventually insert
+        List <Task> tasksToCreate = new List<Task>();
+        //Looping through each lead from the trigger new
+        for(Lead newLead : newLeadsList){
+            //Here we're only creating a task if the product interest field isn't blank
+            if(newLead.ProductInterest__c != NULL){
+                Task followUp = new Task(Subject = 'Follow Up - '+ newLead.ProductInterest__c,WhoId = newLead.id, Status = 'Not Started', ActivityDate = Date.Today().addDays(5), Priority = 'Normal');
+                //Adding tasks to our list
+                tasksToCreate.add(followUp);
+            }
+        }
+        //Inserting the list of tasks
+        insert tasksToCreate;
+    }
+    
+    public static void afterUpdate(List<Lead> updateLeadsList, Map<id,Lead> oldLeadMap){
+        //Creating a list of tasks to eventually insert
+        List <Task> tasksToCreate = new List<Task>();
+        //Looping through each lead in the trigger.new leads
+        for(Lead updatedLead : updateLeadsList){
+            //Matching the old version of the lead to the new version
+            Lead oldLead = oldLeadMap.get(updatedLead.id);
+           //Here we're only creating tasks if the product insterest on the old version is different than the updated version
+           if(oldLead.ProductInterest__c != updatedLead.ProductInterest__c){
+                Task followUp = new Task(Subject = 'Product Interest has changed to: ' + updatedLead.ProductInterest__c, WhoId = updatedLead.id, Status = 'Not Started', ActivityDate = Date.Today().addDays(3), Priority = 'Medium');
+                //Adding the the tasks to a list to be inserted
+                tasksToCreate.add(followUp);
+            }
+            
+            
+        }
+        //inserting the tasks
+        insert tasksToCreate;  
+    }
+}
